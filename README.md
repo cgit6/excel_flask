@@ -1,10 +1,10 @@
-# Excel文件處理 Cloud Function
+# Excel 文件處理 Cloud Function
 
 這是一個 Google Cloud Functions 示例，用於接收上傳的 Excel 文件，處理後返回修改後的文件。
 
 ## 檔案結構
 
-- `demo.py` - Cloud Function 的主要代碼
+- `main.py` - Cloud Function 的主要代碼
 - `requirements.txt` - 部署時需要的依賴包
 - `test_upload.html` - 用於測試上傳功能的 HTML 頁面
 
@@ -13,6 +13,7 @@
 要在本地測試此 Cloud Function，請按照以下步驟操作：
 
 1. 安裝依賴：
+
    ```bash
    pip install -r requirements.txt
    ```
@@ -21,7 +22,6 @@
    ```bash
    python demo.py
    ```
-   
 3. 服務器將在 http://localhost:8080 啟動
 
 4. 使用瀏覽器打開 `test_upload.html` 文件，或直接使用 curl 測試：
@@ -36,6 +36,7 @@
 1. 確保已安裝並配置 [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
 
 2. 使用以下命令部署 Cloud Function：
+
    ```bash
    gcloud functions deploy process_excel \
      --runtime python310 \
@@ -67,7 +68,8 @@
 部署完成後，請編輯 `test_upload.html` 文件中的 `apiUrl` 變量，將其設置為您的 Cloud Function URL：
 
 ```javascript
-const apiUrl = 'https://your-region-your-project.cloudfunctions.net/process_excel';
+const apiUrl =
+  "https://your-region-your-project.cloudfunctions.net/process_excel";
 ```
 
 然後在瀏覽器中打開此 HTML 文件以測試您的 Cloud Function。
@@ -80,4 +82,4 @@ const apiUrl = 'https://your-region-your-project.cloudfunctions.net/process_exce
 2. 如果 A1 單元格為空，則添加標題
 3. 將所有單元格中的文本轉換為大寫
 
-您可以根據需要修改此邏輯，或者集成現有的 Excel 處理函數（如 test3.py 中的函數）。 
+您可以根據需要修改此邏輯，或者集成現有的 Excel 處理函數（如 test3.py 中的函數）。

@@ -96,9 +96,9 @@
             document.getElementById('statusError').style.display = 'none';
             
             // 替換這裡的URL為您部署的Cloud Function URL
-            // 本地測試使用: http://localhost:8080/process_excel
+            // 本地測試使用: http://localhost:8080  
             // 部署後使用您的Cloud Function URL
-            const apiUrl = 'http://localhost:8080/process_excel';
+            const apiUrl = 'https://excel-flask-755089340805.us-central1.run.app';
             
             fetch(apiUrl, {
                 method: 'POST',

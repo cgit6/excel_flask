@@ -11,4 +11,4 @@ ENV PORT=8080
 
 EXPOSE 8080
 
-CMD ["python", "demo.py"]
+CMD ["python", "main.py"]
