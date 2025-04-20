@@ -1,20 +1,20 @@
-import functions_framework
 import tempfile
 import os
 import openpyxl
-from flask import jsonify, make_response, render_template_string
+from flask import Flask, request, jsonify, make_response, render_template_string
+import urllib.parse
 
-@functions_framework.http
-def process_excel(request):
-    """HTTP Cloud Function，用于接收、处理和返回Excel文件。
+# 創建 Flask 應用
+app = Flask(__name__)
+
+@app.route('/', methods=['GET'])
+@app.route('/process_excel', methods=['GET', 'POST'])
+def process_excel():
+    """處理 Excel 文件的 HTTP 端點
     
-    Args:
-        request (flask.Request): 请求对象
-        
-    Returns:
-        处理后的Excel文件或错误信息
+    支持 GET 請求（顯示上傳表單）和 POST 請求（處理上傳的文件）
     """
-    # 如果是GET请求，则显示上传表单
+    # 如果是GET請求，則顯示上傳表單
     if request.method == 'GET':
         html = '''
         <!DOCTYPE html>
@@ -49,111 +49,105 @@ def process_excel(request):
         '''
         return render_template_string(html)
     
-    # 检查请求方法
+    # 檢查請求方法
     if request.method != 'POST':
-        return jsonify({"error": "只支持POST请求"}), 405
+        return jsonify({"error": "只支持POST請求"}), 405
     
-    # 检查是否有文件上传
+    # 檢查是否有文件上傳
     if 'file' not in request.files:
-        return jsonify({"error": "未找到上传的文件"}), 400
+        return jsonify({"error": "未找到上傳的文件"}), 400
     
     uploaded_file = request.files['file']
     
-    # 检查文件名是否为空
+    # 檢查文件名是否為空
     if uploaded_file.filename == '':
-        return jsonify({"error": "文件名为空"}), 400
+        return jsonify({"error": "文件名為空"}), 400
     
-    # 检查文件类型
+    # 檢查文件類型
     if not uploaded_file.filename.endswith(('.xlsx', '.xls')):
         return jsonify({"error": "只支持Excel文件(.xlsx或.xls)"}), 400
     
     try:
-        # 创建临时文件来保存上传的Excel
+        # 創建臨時文件來保存上傳的Excel
         with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as temp_input:
             temp_input_path = temp_input.name
             uploaded_file.save(temp_input_path)
         
-        # 创建临时文件用于保存处理后的Excel
+        # 創建臨時文件用於保存處理後的Excel
         with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as temp_output:
             temp_output_path = temp_output.name
         
-        # 处理Excel文件
+        # 處理Excel文件
         process_result = process_excel_file(temp_input_path, temp_output_path)
         
         if not process_result:
-            return jsonify({"error": "处理Excel文件时出错"}), 500
+            return jsonify({"error": "處理Excel文件時出錯"}), 500
         
-        # 读取处理后的文件并创建响应
+        # 讀取處理後的文件並創建響應
         with open(temp_output_path, 'rb') as f:
             output_data = f.read()
         
-        # 构建响应
+        # 構建響應
         response = make_response(output_data)
         response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        response.headers['Content-Disposition'] = f'attachment; filename=processed_{uploaded_file.filename}'
         
-        # 清理临时文件
+        # 處理文件名編碼問題 - 修復 Unicode 編碼錯誤
+        filename = f"processed_{uploaded_file.filename}"
+        
+        # RFC 5987 格式編碼文件名
+        encoded_filename = urllib.parse.quote(filename.encode('utf-8'))
+        response.headers['Content-Disposition'] = f"attachment; filename*=UTF-8''{encoded_filename}"
+        
+        # 清理臨時文件
         try:
             os.unlink(temp_input_path)
             os.unlink(temp_output_path)
         except Exception as e:
-            print(f"清理临时文件时出错: {str(e)}")
+            print(f"清理臨時文件時出錯: {str(e)}")
         
         return response
         
     except Exception as e:
-        return jsonify({"error": f"处理请求时出错: {str(e)}"}), 500
+        return jsonify({"error": f"處理請求時出錯: {str(e)}"}), 500
 
 def process_excel_file(input_path, output_path):
-    """处理Excel文件的函数
+    """處理Excel文件的函數
     
     Args:
-        input_path: 输入Excel文件路径
-        output_path: 输出Excel文件路径
+        input_path: 輸入Excel文件路徑
+        output_path: 輸出Excel文件路徑
         
     Returns:
-        bool: 处理是否成功
+        bool: 處理是否成功
     """
     try:
-        # 加载工作簿
+        # 加載工作簿
         wb = openpyxl.load_workbook(input_path)
         ws = wb.active
         
-        # 在这里添加您的Excel处理逻辑
-        # 例如：为第一行添加粗体
+        # 在這裡添加您的Excel處理邏輯
+        # 例如：為第一行添加粗體
         for cell in ws[1]:
             cell.font = openpyxl.styles.Font(bold=True)
             
-        # 示例：在A1单元格添加标题
-        ws['A1'] = ws['A1'].value or "处理后的数据"
+        # 示例：在A1單元格添加標題
+        ws['A1'] = ws['A1'].value or "處理後的數據"
         
-        # 示例：修改所有单元格中的文本
-        for row in ws.iter_rows(min_row=2):  # 从第二行开始
+        # 示例：修改所有單元格中的文本
+        for row in ws.iter_rows(min_row=2):  # 從第二行開始
             for cell in row:
                 if isinstance(cell.value, str):
-                    cell.value = cell.value.upper()  # 将文本转换为大写
+                    cell.value = cell.value.upper()  # 將文本轉換為大寫
         
-        # 保存处理后的工作簿
+        # 保存處理後的工作簿
         wb.save(output_path)
         return True
         
     except Exception as e:
-        print(f"处理Excel文件时出错: {str(e)}")
+        print(f"處理Excel文件時出錯: {str(e)}")
         return False
 
-# 如果您想在本地测试此函数，可以使用以下代码
+# 啟動應用
 if __name__ == "__main__":
-    # 注意：这仅用于本地测试，部署时会被忽略
-    from flask import Flask, request
-    
-    app = Flask(__name__)
-    
-    @app.route('/', methods=['GET'])
-    def index():
-        return process_excel(request)
-    
-    @app.route('/process_excel', methods=['GET', 'POST'])
-    def test_function():
-        return process_excel(request)
-    
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port, debug=True)

@@ -1,4 +1,4 @@
-functions-framework==3.2.0
 flask==2.2.3
 openpyxl==3.1.2
-Werkzeug==2.2.3 
+Werkzeug==2.2.3
+functions-framework==3.2.0 
