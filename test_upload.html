@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel處理測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .form-container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .file-input {
+            margin-bottom: 15px;
+            padding: 10px 0;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #dff0d8;
+            border: 1px solid #d6e9c6;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>Excel文件處理測試</h1>
+    
+    <div class="form-container">
+        <h2>上傳Excel文件</h2>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="file-input">
+                <label for="excelFile">選擇Excel文件 (.xlsx 或 .xls):</label><br>
+                <input type="file" id="excelFile" name="file" accept=".xlsx,.xls" required>
+            </div>
+            
+            <button type="submit" class="btn">上傳並處理</button>
+        </form>
+    </div>
+    
+    <div id="statusSuccess" class="status success">
+        文件處理成功！正在下載處理後的文件...
+    </div>
+    
+    <div id="statusError" class="status error">
+        處理過程中出現錯誤。
+    </div>
+    
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('excelFile');
+            if (!fileInput.files[0]) {
+                alert('請選擇一個文件');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            // 顯示加載中狀態
+            document.getElementById('statusSuccess').style.display = 'none';
+            document.getElementById('statusError').style.display = 'none';
+            
+            // 替換這裡的URL為您部署的Cloud Function URL
+            // 本地測試使用: http://localhost:8080/process_excel
+            // 部署後使用您的Cloud Function URL
+            const apiUrl = 'http://localhost:8080/process_excel';
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || 'Unknown error');
+                    });
+                }
+                
+                // 獲取文件名
+                const contentDisposition = response.headers.get('Content-Disposition');
+                let filename = 'processed_excel.xlsx';
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="?([^"]*)"?/);
+                    if (filenameMatch && filenameMatch[1]) {
+                        filename = filenameMatch[1];
+                    }
+                }
+                
+                // 下載文件
+                return response.blob().then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    
+                    document.getElementById('statusSuccess').style.display = 'block';
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('statusError').textContent = '錯誤: ' + error.message;
+                document.getElementById('statusError').style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html> 
