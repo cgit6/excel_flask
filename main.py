@@ -1,6 +1,6 @@
 import tempfile
 import os
-import openpyxl
+# import openpyxl
 from flask import Flask, request, jsonify, make_response
 import urllib.parse
 from flask_cors import CORS
@@ -25,7 +25,7 @@ def process_excel():
         if request.is_json:
             print("處理 JSON 資料...")
             # 獲取 JSON 資料
-            json_data = request.get_json()
+            json_data = request.get_json() # 獲取JSON資料
             
             # 創建臨時文件用於保存處理後的 Excel
             with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as temp_output:
@@ -121,4 +121,4 @@ def process_excel():
 # 啟動應用
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port)
