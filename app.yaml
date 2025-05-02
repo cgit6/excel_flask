@@ -1,9 +1,0 @@
-runtime: python310
-entrypoint: gunicorn -b :$PORT main:app
-
-env_variables:
-  PYTHONUNBUFFERED: 'TRUE'
-
-handlers:
-- url: /.*
-  script: auto 
