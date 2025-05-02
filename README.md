@@ -83,3 +83,9 @@ const apiUrl =
 3. 將所有單元格中的文本轉換為大寫
 
 您可以根據需要修改此邏輯，或者集成現有的 Excel 處理函數（如 test3.py 中的函數）。
+
+測試用的命令行
+
+```cmd
+curl -X POST -F "file=@demo/翰禹_客戶出貨單_2025-04-15T11_30_55.xlsx" https://excel-flask-755089340805.us-central1.run.app/ --output output/processed_result.xlsx
+```
