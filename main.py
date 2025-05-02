@@ -118,7 +118,12 @@ def process_excel():
     except Exception as e:
         return jsonify({"error": f"處理請求時出錯: {str(e)}"}), 500
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    """健康檢查端點，用於確認服務正常運行"""
+    return jsonify({"status": "healthy"}), 200
+
 # 啟動應用
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=False)

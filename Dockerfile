@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /tmp/excel_processing
 
 ENV PORT=8080
+ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8080
 
