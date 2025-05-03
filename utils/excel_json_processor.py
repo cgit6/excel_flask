@@ -130,42 +130,51 @@ def export_excel_to_pdf(excel_path, pdf_path):
 def export_excel_to_pdf_windows(excel_path, pdf_path):
     """Windows環境下使用win32com將Excel轉換為PDF"""
     try:
-        # 初始化Excel應用程序
-        excel = win32com.client.Dispatch("Excel.Application")
-        excel.Visible = False  # 不顯示Excel窗口
+        # 先初始化COM環境
+        import pythoncom
+        pythoncom.CoInitialize()
         
         try:
-            # 打開工作簿
-            wb = excel.Workbooks.Open(excel_path)
+            # 初始化Excel應用程序
+            excel = win32com.client.Dispatch("Excel.Application")
+            excel.Visible = False  # 不顯示Excel窗口
             
-            # 設置打印選項
-            ws = wb.ActiveSheet
-            ws.PageSetup.Zoom = False  # 禁用縮放
-            ws.PageSetup.FitToPagesWide = 1  # 適應1頁寬
-            ws.PageSetup.FitToPagesTall = False  # 高度不限制
-            
-            # 轉換為PDF (xlTypePDF = 0)
-            wb.ExportAsFixedFormat(0, pdf_path)
-            
-            # 關閉工作簿而不保存
-            wb.Close(False)
-            print(f"PDF導出成功: {pdf_path}")
-            return True
-            
+            try:
+                # 打開工作簿
+                wb = excel.Workbooks.Open(excel_path)
+                
+                # 設置打印選項
+                ws = wb.ActiveSheet
+                ws.PageSetup.Zoom = False  # 禁用縮放
+                ws.PageSetup.FitToPagesWide = 1  # 適應1頁寬
+                ws.PageSetup.FitToPagesTall = False  # 高度不限制
+                
+                # 轉換為PDF (xlTypePDF = 0)
+                wb.ExportAsFixedFormat(0, pdf_path)
+                
+                # 關閉工作簿而不保存
+                wb.Close(False)
+                print(f"PDF導出成功: {pdf_path}")
+                return True
+                
+            except Exception as e:
+                print(f"導出PDF時出錯: {str(e)}")
+                return False
+                
+            finally:
+                # 退出Excel應用程序
+                excel.Quit()
+        
         except Exception as e:
-            print(f"導出PDF時出錯: {str(e)}")
+            print(f"創建Excel應用程序時出錯: {str(e)}")
             return False
             
         finally:
-            # 退出Excel應用程序
-            excel.Quit()
-    
-    except com_error as e:
-        print(f"COM錯誤: {str(e)}")
-        return False
-    
+            # 釋放COM資源
+            pythoncom.CoUninitialize()
+        
     except Exception as e:
-        print(f"導出PDF過程中發生異常: {str(e)}")
+        print(f"COM環境初始化失敗: {str(e)}")
         return False
 
 def export_excel_to_pdf_linux(excel_path, pdf_path):

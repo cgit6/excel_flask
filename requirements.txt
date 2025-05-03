@@ -9,3 +9,4 @@ numpy==1.23.5
 # werkzeug==2.2.3  # 已在上方定義，避免重複
 gunicorn==20.1.0
 pywin32==305;platform_system=="Windows" 
+pythoncom==2.2.0
